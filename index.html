@@ -1,164 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NFL 17-0 Cheat Sheet</title>
+
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NFL Cheat Sheet</title>
 <style>
-body{margin:0;background:#090e17;color:white;font-family:Arial,sans-serif;padding:18px}
-h1{color:#f2c45d}h2{margin-top:25px}
-select,input,button{padding:12px;margin:5px 0;border-radius:8px;border:1px solid #35445b;background:#172438;color:white;width:100%;font-size:16px}
-button{background:#f2c45d;color:#111;font-weight:bold;cursor:pointer}
-.card{background:#111b2a;padding:14px;margin:10px 0;border-radius:12px}
-.rating{color:#f2c45d;font-weight:bold;font-size:22px}
-label{display:block;margin-top:10px;color:#bdc9d9}
-</style>
-</head>
-<body>
-<h1>🏈 NFL 17-0 Cheat Sheet</h1>
-<p>Choose a team, era and lineup spot. Edit ratings whenever you want.</p>
-
-<label>Team</label><select id="team"></select>
-<label>Era</label>
-<select id="era">
-<option value="all">All eras</option>
-<option>Pre-1995</option>
-<option>1995-2010</option>
-<option>2010-Present</option>
-</select>
-<label>Position</label>
-<select id="pos">
-<option value="all">All positions</option>
-<option>QB</option><option>WR1</option><option>WR2</option>
-<option>RB</option><option>TE</option>
-<option>Lineman 1</option><option>Lineman 2</option><option>DB</option>
-</select>
-<label>Search player</label><input id="search" placeholder="Player name">
-<h2>Player Rankings</h2>
-<div id="players"></div>
-
-<h2>Add or Edit Player</h2>
-<input id="name" placeholder="Player name">
-<label>Team</label><select id="editTeam"></select>
-<label>Era</label>
-<select id="editEra">
-<option>Pre-1995</option><option>1995-2010</option><option>2010-Present</option>
-</select>
-<label>Lineup spot</label>
-<select id="editPos">
-<option>QB</option><option>WR1</option><option>WR2</option>
-<option>RB</option><option>TE</option><option>Lineman 1</option>
-<option>Lineman 2</option><option>DB</option>
-</select>
-<input id="year" type="number" placeholder="Year (optional)">
-<input id="rating" type="number" min="0" max="99" placeholder="Rating from 0 to 99">
-<button onclick="savePlayer()">Save Player</button>
-<button onclick="exportData()">Export Backup</button>
-<p>Ratings are estimates, not official ratings. Export a backup to keep your changes.</p>
-
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f3f5f9;color:#172033;margin:0;padding:16px}.wrap{max-width:1000px;margin:auto}h1{margin:4px 0}.muted{color:#5d687c}.panel{background:white;padding:16px;border-radius:14px;margin:14px 0;box-shadow:0 2px 10px #17203310}.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}label{display:block;font-weight:700;font-size:14px;margin:10px 0 5px}select,input{width:100%;padding:11px;border:1px solid #c9d1df;border-radius:8px;font-size:16px;background:white}button{padding:11px 14px;margin:8px 8px 0 0;border:0;border-radius:8px;background:#173d77;color:white;font-weight:700;font-size:15px}.secondary{background:#e7edf6;color:#172033}.summary{font-weight:bold;margin:14px 0}.lineup{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:12px;align-items:end;padding:12px 0;border-top:1px solid #e4e8ef}.slot{font-size:12px;color:#5d687c;font-weight:bold;margin-bottom:5px}.note{font-size:13px;line-height:1.45;color:#5d687c}@media(max-width:480px){body{padding:10px}.panel{padding:12px}.lineup{grid-template-columns:minmax(0,1fr) 82px}}
+</style></head><body><main class="wrap"><h1>🏈 NFL Cheat Sheet</h1><p class="muted">32 teams · 3 eras · 8 lineup spots per era · 768 prefilled player ratings</p>
+<section class="panel"><div class="filters"><div><label for="team">Team</label><select id="team"></select></div><div><label for="era">Era</label><select id="era"><option value="pre">Pre-1995</option><option value="mid">1995–2010</option><option value="modern">2010–Present</option></select></div><div><label for="position">Position</label><select id="position"><option value="all">All lineup spots</option><option>QB</option><option>WR1</option><option>WR2</option><option>RB</option><option>TE</option><option>Lineman 1</option><option>Lineman 2</option><option>DB</option></select></div></div><div id="summary" class="summary"></div><div id="lineups"></div>
+<button id="save">Save changes</button><button id="backup" class="secondary">Download backup</button><button id="clear" class="secondary">Clear this lineup</button><p class="note">Choose a team, era, and position. Edit any player name or 0–100 rating. Ratings are my estimates, not official NFL ratings. Teams founded after an era show “Franchise not founded.” Changes save in this browser on this device. Use Download backup to save a copy.</p></section></main>
 <script>
-const teams=[
-["Arizona Cardinals","ARI"],["Atlanta Falcons","ATL"],
-["Baltimore Ravens","BAL"],["Buffalo Bills","BUF"],
-["Carolina Panthers","CAR"],["Chicago Bears","CHI"],
-["Cincinnati Bengals","CIN"],["Cleveland Browns","CLE"],
-["Dallas Cowboys","DAL"],["Denver Broncos","DEN"],
-["Detroit Lions","DET"],["Green Bay Packers","GB"],
-["Houston Texans","HOU"],["Indianapolis Colts","IND"],
-["Jacksonville Jaguars","JAX"],["Kansas City Chiefs","KC"],
-["Las Vegas Raiders","LV"],["Los Angeles Chargers","LAC"],
-["Los Angeles Rams","LAR"],["Miami Dolphins","MIA"],
-["Minnesota Vikings","MIN"],["New England Patriots","NE"],
-["New Orleans Saints","NO"],["New York Giants","NYG"],
-["New York Jets","NYJ"],["Philadelphia Eagles","PHI"],
-["Pittsburgh Steelers","PIT"],["San Francisco 49ers","SF"],
-["Seattle Seahawks","SEA"],["Tampa Bay Buccaneers","TB"],
-["Tennessee Titans","TEN"],["Washington Commanders","WAS"]
-];
-const slots=["QB","WR1","WR2","RB","TE","Lineman 1","Lineman 2","DB"];
-const starters=[
-["Tom Brady","NE","1995-2010","QB",99,2007],
-["Joe Montana","SF","Pre-1995","QB",98,1989],
-["Patrick Mahomes","KC","2010-Present","QB",98,2023],
-["Peyton Manning","IND","1995-2010","QB",98,2004],
-["Josh Allen","BUF","2010-Present","QB",97,2024],
-["Jerry Rice","SF","Pre-1995","WR1",99,1987],
-["Randy Moss","MIN","1995-2010","WR1",99,1998],
-["Calvin Johnson","DET","1995-2010","WR1",98,2012],
-["Justin Jefferson","MIN","2010-Present","WR1",97,2022],
-["Tyreek Hill","MIA","2010-Present","WR1",97,2023],
-["Terrell Owens","SF","1995-2010","WR2",96,2000],
-["Larry Fitzgerald","ARI","1995-2010","WR2",96,2008],
-["Ja'Marr Chase","CIN","2010-Present","WR2",96,2024],
-["Barry Sanders","DET","Pre-1995","RB",99,1997],
-["Walter Payton","CHI","Pre-1995","RB",98,1977],
-["Emmitt Smith","DAL","Pre-1995","RB",98,1995],
-["LaDainian Tomlinson","LAC","1995-2010","RB",99,2006],
-["Adrian Peterson","MIN","1995-2010","RB",98,2012],
-["Christian McCaffrey","SF","2010-Present","RB",97,2023],
-["Rob Gronkowski","NE","1995-2010","TE",98,2011],
-["Tony Gonzalez","KC","1995-2010","TE",97,2004],
-["Travis Kelce","KC","2010-Present","TE",98,2022],
-["Anthony Munoz","CIN","Pre-1995","Lineman 1",99,1988],
-["Larry Allen","DAL","1995-2010","Lineman 1",99,1996],
-["Joe Thomas","CLE","1995-2010","Lineman 2",98,2011],
-["Trent Williams","SF","2010-Present","Lineman 2",98,2021],
-["Lawrence Taylor","NYG","Pre-1995","Lineman 1",99,1986],
-["Reggie White","GB","Pre-1995","Lineman 2",99,1987],
-["Deion Sanders","SF","Pre-1995","DB",99,1994],
-["Ed Reed","BAL","1995-2010","DB",98,2004],
-["Troy Polamalu","PIT","1995-2010","DB",97,2010],
-["Richard Sherman","SEA","2010-Present","DB",96,2013]
-];
-let db;
-try{db=JSON.parse(localStorage.getItem("nflRatings"))}
-catch(e){db=null}
-if(!Array.isArray(db)||!db.length){
-db=starters.map((p,i)=>({id:i,name:p[0],team:p[1],era:p[2],pos:p[3],rating:p[4],year:p[5]}));
-}
-function fill(id,all){
-document.getElementById(id).innerHTML=(all?'<option value="all">All teams</option>':'')+
-teams.map(t=>`<option value="${t[1]}">${t[0]}</option>`).join("");
-}
-fill("team",true);fill("editTeam",false);
-function render(){
-let list=db.filter(p=>
-(document.getElementById("team").value==="all"||p.team===document.getElementById("team").value)&&
-(document.getElementById("era").value==="all"||p.era===document.getElementById("era").value)&&
-(document.getElementById("pos").value==="all"||p.pos===document.getElementById("pos").value)&&
-p.name.toLowerCase().includes(document.getElementById("search").value.toLowerCase())
-);
-list.sort((a,b)=>b.rating-a.rating);
-document.getElementById("players").innerHTML=list.length?list.map(p=>
-`<div class="card"><b>${p.name}</b><br>${teams.find(t=>t[1]===p.team)?.[0]||p.team} · ${p.era} · ${p.pos} · ${p.year||""}<p class="rating">Rating: ${p.rating}</p><button onclick="editPlayer(${p.id})">Edit</button></div>`
-).join(""):"<p>No players found for those filters. Try another team or era.</p>";
-}
-function savePlayer(){
-const name=document.getElementById("name").value.trim();
-const rating=Number(document.getElementById("rating").value);
-if(!name||!Number.isFinite(rating)||rating<0||rating>99){alert("Enter a player name and rating from 0 to 99.");return}
-db.push({id:Date.now(),name,team:document.getElementById("editTeam").value,era:document.getElementById("editEra").value,pos:document.getElementById("editPos").value,rating,year:Number(document.getElementById("year").value)||""});
-localStorage.setItem("nflRatings",JSON.stringify(db));
-document.getElementById("name").value="";
-document.getElementById("rating").value="";
-document.getElementById("year").value="";
-render();
-}
-function editPlayer(id){
-const p=db.find(x=>x.id===id);if(!p)return;
-const r=prompt("Enter new rating for "+p.name,p.rating);
-if(r===null)return;
-const n=Number(r);if(!Number.isFinite(n)||n<0||n>99){alert("Use a rating from 0 to 99.");return}
-p.rating=n;localStorage.setItem("nflRatings",JSON.stringify(db));render();
-}
-function exportData(){
-const a=document.createElement("a");
-a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:"application/json"}));
-a.download="nfl-ratings-backup.json";a.click();
-}
-["team","era","pos","search"].forEach(id=>document.getElementById(id).addEventListener("input",render));
-render();
-</script>
-</body>
-</html> 
-
+(async function(){
+const teams=[['Arizona Cardinals','ARI'],['Atlanta Falcons','ATL'],['Baltimore Ravens','BAL'],['Buffalo Bills','BUF'],['Carolina Panthers','CAR'],['Chicago Bears','CHI'],['Cincinnati Bengals','CIN'],['Cleveland Browns','CLE'],['Dallas Cowboys','DAL'],['Denver Broncos','DEN'],['Detroit Lions','DET'],['Green Bay Packers','GB'],['Houston Texans','HOU'],['Indianapolis Colts','IND'],['Jacksonville Jaguars','JAX'],['Kansas City Chiefs','KC'],['Las Vegas Raiders','LV'],['Los Angeles Chargers','LAC'],['Los Angeles Rams','LAR'],['Miami Dolphins','MIA'],['Minnesota Vikings','MIN'],['New England Patriots','NE'],['New Orleans Saints','NO'],['New York Giants','NYG'],['New York Jets','NYJ'],['Philadelphia Eagles','PHI'],['Pittsburgh Steelers','PIT'],['San Francisco 49ers','SF'],['Seattle Seahawks','SEA'],['Tampa Bay Buccaneers','TB'],['Tennessee Titans','TEN'],['Washington Commanders','WAS']];
+const eras=[['pre','Pre-1995'],['mid','1995–2010'],['modern','2010–Present']];
+const positions=['QB','WR1','WR2','RB','TE','Lineman 1','Lineman 2','DB'];
+const teamEl=document.getElementById('team'),eraEl=document.getElementById('era'),posEl=document.getElementById('position');
+// Always build every team option directly from the list above.
+teamEl.replaceChildren();teams.forEach(([name,code])=>{const o=document.createElement('option');o.value=code;o.textContent=name;teamEl.appendChild(o)});teamEl.value='ARI';
+const packed='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';
+let rows;
+try{const bytes=Uint8Array.from(atob(packed),c=>c.charCodeAt(0));const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));rows=JSON.parse(await new Response(stream).text())}catch(err){document.getElementById('summary').textContent='Could not load the player list. Please use an up-to-date browser.';return}
+const seedData={};rows.forEach(([team,era,players])=>players.forEach((player,i)=>{seedData[`${team}|${era}|${positions[i]}`]={name:player[0],rating:player[1]}}));
+let db={};try{db=JSON.parse(localStorage.getItem('nflCheatSheetFinalV1')||'{}')||{}}catch(e){}
+// Fill defaults without replacing existing saved edits.
+Object.entries(seedData).forEach(([k,v])=>{if(!(k in db)||!db[k]||!db[k].name)db[k]={...v}});
+try{localStorage.setItem('nflCheatSheetFinalV1',JSON.stringify(db))}catch(e){}
+const key=(t,e,p)=>`${t}|${e}|${p}`;
+function render(){const t=teamEl.value,e=eraEl.value,selected=positions.filter(p=>posEl.value==='all'||p===posEl.value);const teamName=teams.find(x=>x[1]===t)?.[0]||t,eraName=eras.find(x=>x[0]===e)?.[1]||e;document.getElementById('summary').textContent=`${teamName} · ${eraName} · ${selected.length} lineup spot(s)`;const root=document.getElementById('lineups');root.innerHTML='';const items=selected.map(p=>({p,...(db[key(t,e,p)]||{name:'',rating:''})}));items.sort((a,b)=>{const ar=a.rating===''?-1:Number(a.rating),br=b.rating===''?-1:Number(b.rating);return br-ar});items.forEach(item=>{const row=document.createElement('div');row.className='lineup';const left=document.createElement('div'),slot=document.createElement('div');slot.className='slot';slot.textContent=item.p;left.appendChild(slot);const name=document.createElement('input');name.type='text';name.placeholder='Player name';name.value=item.name||'';name.setAttribute('aria-label',item.p+' player');const right=document.createElement('div'),lab=document.createElement('div');lab.className='slot';lab.textContent='RATING';right.appendChild(lab);const rating=document.createElement('input');rating.type='number';rating.min='0';rating.max='100';rating.placeholder='—';rating.value=item.rating??'';rating.setAttribute('aria-label',item.p+' rating');const update=()=>{db[key(t,e,item.p)]={name:name.value.trim(),rating:rating.value===''?'':Math.max(0,Math.min(100,Number(rating.value)))}};name.addEventListener('input',update);rating.addEventListener('input',update);left.appendChild(name);right.appendChild(rating);row.append(left,right);root.appendChild(row)})}
+[teamEl,eraEl,posEl].forEach(el=>el.addEventListener('change',render));
+document.getElementById('save').addEventListener('click',()=>{try{localStorage.setItem('nflCheatSheetFinalV1',JSON.stringify(db));render();alert('Changes saved on this device.')}catch(e){alert('Could not save in this browser. Use Download backup.')}});
+document.getElementById('backup').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nfl-cheat-sheet-backup.json';a.click();URL.revokeObjectURL(url)});
+document.getElementById('clear').addEventListener('click',()=>{if(confirm('Clear player names and ratings for this team and era?')){positions.forEach(p=>delete db[key(teamEl.value,eraEl.value,p)]);render();try{localStorage.setItem('nflCheatSheetFinalV1',JSON.stringify(db))}catch(e){}}});render();
+})();
+</script></body></html>
