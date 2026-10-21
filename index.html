@@ -1,35 +1,135 @@
- <!doctype html>.
-E•NFL 17–0
-NFL player rankings cheat sheet
-Edit ratings as you go
-Find a player
-TEAM
-ERA
-All erasPre-19951995–20102010–Present
-POSITION GROUP
-All positionsQBWRRBTEOLDB
-LINEUP SLOT
-All slotsQBWR1WR2RBTELineman 1Lineman 2DB
-SEARCH PLAYER
-SORT LIST
-Highest rating firstPlayer name A–ZYear newest first
-Player rankings
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFL 17-0 Cheat Sheet</title>
+<style>
+body{margin:0;background:#090e17;color:white;font-family:Arial,sans-serif;padding:18px}
+h1{color:#f2c45d}h2{margin-top:25px}
+select,input,button{padding:12px;margin:5px 0;border-radius:8px;border:1px solid #35445b;background:#172438;color:white;width:100%;font-size:16px}
+button{background:#f2c45d;color:#111;font-weight:bold;cursor:pointer}
+.card{background:#111b2a;padding:14px;margin:10px 0;border-radius:12px}
+.rating{color:#f2c45d;font-weight:bold;font-size:22px}
+label{display:block;margin-top:10px;color:#bdc9d9}
+</style>
+</head>
+<body>
+<h1>🏈 NFL 17-0 Cheat Sheet</h1>
+<p>Choose a team, era and lineup spot. Edit ratings whenever you want.</p>
 
-—
-Top match
-Add or edit a player
-PLAYER NAME
-OVERALL RATING (0–99)
-TEAM
-ERA
-Pre-19951995–20102010–Present
-SEASON/YEAR
-LINEUP SLOT
-QBWR1WR2RBTELineman 1Lineman 2DB
-STATS / NOTES (OPTIONAL)
-Save player
-Clear form
-Export database
-Import database
-Starter ratings are estimates, not official ratings. Player edits are saved in this browser on this device. Export your database to back it up or move it to another device.
+<label>Team</label><select id="team"></select>
+<label>Era</label>
+<select id="era">
+<option value="all">All eras</option>
+<option>Pre-1995</option>
+<option>1995-2010</option>
+<option>2010-Present</option>
+</select>
+<label>Position</label>
+<select id="pos">
+<option value="all">All positions</option>
+<option>QB</option><option>WR1</option><option>WR2</option>
+<option>RB</option><option>TE</option>
+<option>Lineman 1</option><option>Lineman 2</option><option>DB</option>
+</select>
+<label>Search player</label><input id="search" placeholder="Player name">
+<h2>Player Rankings</h2>
+<div id="players"></div>
+
+<h2>Add or Edit Player</h2>
+<input id="name" placeholder="Player name">
+<label>Team</label><select id="editTeam"></select>
+<label>Era</label>
+<select id="editEra">
+<option>Pre-1995</option><option>1995-2010</option><option>2010-Present</option>
+</select>
+<label>Lineup spot</label>
+<select id="editPos">
+<option>QB</option><option>WR1</option><option>WR2</option>
+<option>RB</option><option>TE</option><option>Lineman 1</option>
+<option>Lineman 2</option><option>DB</option>
+</select>
+<input id="year" type="number" placeholder="Year (optional)">
+<input id="rating" type="number" min="0" max="99" placeholder="Rating from 0 to 99">
+<button onclick="savePlayer()">Save Player</button>
+<button onclick="exportData()">Export Backup</button>
+<p>Ratings are estimates, not official ratings. Export a backup to keep your changes.</p>
+
+<script>
+const teams=[
+["Arizona Cardinals","ARI"],["Atlanta Falcons","ATL"],
+["Baltimore Ravens","BAL"],["Buffalo Bills","BUF"],
+["Carolina Panthers","CAR"],["Chicago Bears","CHI"],
+["Cincinnati Bengals","CIN"],["Cleveland Browns","CLE"],
+["Dallas Cowboys","DAL"],["Denver Broncos","DEN"],
+["Detroit Lions","DET"],["Green Bay Packers","GB"],
+["Houston Texans","HOU"],["Indianapolis Colts","IND"],
+["Jacksonville Jaguars","JAX"],["Kansas City Chiefs","KC"],
+["Las Vegas Raiders","LV"],["Los Angeles Chargers","LAC"],
+["Los Angeles Rams","LAR"],["Miami Dolphins","MIA"],
+["Minnesota Vikings","MIN"],["New England Patriots","NE"],
+["New Orleans Saints","NO"],["New York Giants","NYG"],
+["New York Jets","NYJ"],["Philadelphia Eagles","PHI"],
+["Pittsburgh Steelers","PIT"],["San Francisco 49ers","SF"],
+["Seattle Seahawks","SEA"],["Tampa Bay Buccaneers","TB"],
+["Tennessee Titans","TEN"],["Washington Commanders","WAS"]
+];
+const slots=["QB","WR1","WR2","RB","TE","Lineman 1","Lineman 2","DB"];
+const starters=[
+["Tom Brady","NE","1995-2010","QB",99,2007],
+["Joe Montana","SF","Pre-1995","QB",98,1989],
+["Patrick Mahomes","KC","2010-Present","QB",98,2023],
+["Peyton Manning","IND","1995-2010","QB",98,2004],
+["Josh Allen","BUF","2010-Present","QB",97,2024],
+["Jerry Rice","SF","Pre-1995","WR1",99,1987],
+["Randy Moss","MIN","1995-2010","WR1",99,1998],
+["Calvin Johnson","DET","1995-2010","WR1",98,2012],
+["Justin Jefferson","MIN","2010-Present","WR1",97,2022],
+["Tyreek Hill","MIA","2010-Present","WR1",97,2023],
+["Terrell Owens","SF","1995-2010","WR2",96,2000],
+["Larry Fitzgerald","ARI","1995-2010","WR2",96,2008],
+["Ja'Marr Chase","CIN","2010-Present","WR2",96,2024],
+["Barry Sanders","DET","Pre-1995","RB",99,1997],
+["Walter Payton","CHI","Pre-1995","RB",98,1977],
+["Emmitt Smith","DAL","Pre-1995","RB",98,1995],
+["LaDainian Tomlinson","LAC","1995-2010","RB",99,2006],
+["Adrian Peterson","MIN","1995-2010","RB",98,2012],
+["Christian McCaffrey","SF","2010-Present","RB",97,2023],
+["Rob Gronkowski","NE","1995-2010","TE",98,2011],
+["Tony Gonzalez","KC","1995-2010","TE",97,2004],
+["Travis Kelce","KC","2010-Present","TE",98,2022],
+["Anthony Munoz","CIN","Pre-1995","Lineman 1",99,1988],
+["Larry Allen","DAL","1995-2010","Lineman 1",99,1996],
+["Joe Thomas","CLE","1995-2010","Lineman 2",98,2011],
+["Trent Williams","SF","2010-Present","Lineman 2",98,2021],
+["Lawrence Taylor","NYG","Pre-1995","Lineman 1",99,1986],
+["Reggie White","GB","Pre-1995","Lineman 2",99,1987],
+["Deion Sanders","SF","Pre-1995","DB",99,1994],
+["Ed Reed","BAL","1995-2010","DB",98,2004],
+["Troy Polamalu","PIT","1995-2010","DB",97,2010],
+["Richard Sherman","SEA","2010-Present","DB",96,2013]
+];
+let db;
+try{db=JSON.parse(localStorage.getItem("nflRatings"))}
+catch(e){db=null}
+if(!Array.isArray(db)||!db.length){
+db=starters.map((p,i)=>({id:i,name:p[0],team:p[1],era:p[2],pos:p[3],rating:p[4],year:p[5]}));
+}
+function fill(id,all){
+document.getElementById(id).innerHTML=(all?'<option value="all">All teams</option>':'')+
+teams.map(t=>`<option value="${t[1]}">${t[0]}</option>`).join("");
+}
+fill("team",true);fill("editTeam",false);
+function render(){
+let list=db.filter(p=>
+(document.getElementById("team").value==="all"||p.team===document.getElementById("team").value)&&
+(document.getElementById("era").value==="all"||p.era===document.getElementById("era").value)&&
+(document.getElementById("pos").value==="all"||p.pos===document.getElementById("pos").value)&&
+p.name.toLowerCase().includes(document.getElementById("search").value.toLowerCase())
+);
+list.sort((a,b)=>b.rating-a.rating);
+document.getElementById("players").innerHTML=list.length?list.map(p=>
+`<div class="card"><b>${p.name}</b><br>${teams.find(t=>t[1]===p.team)?.[0]||p.team} · ${p.era} · ${p.pos} · ${p.year||""}<p class="rating">Rating: ${p.rating}</p><button onclick="editPlayer(${p.id})">Edit</button></div>`
+).join(""):"<p>No players found for
 
