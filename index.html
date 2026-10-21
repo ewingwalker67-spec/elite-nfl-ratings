@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -131,5 +131,34 @@ p.name.toLowerCase().includes(document.getElementById("search").value.toLowerCas
 list.sort((a,b)=>b.rating-a.rating);
 document.getElementById("players").innerHTML=list.length?list.map(p=>
 `<div class="card"><b>${p.name}</b><br>${teams.find(t=>t[1]===p.team)?.[0]||p.team} · ${p.era} · ${p.pos} · ${p.year||""}<p class="rating">Rating: ${p.rating}</p><button onclick="editPlayer(${p.id})">Edit</button></div>`
-).join(""):"<p>No players found for
+).join(""):"<p>No players found for those filters. Try another team or era.</p>";
+}
+function savePlayer(){
+const name=document.getElementById("name").value.trim();
+const rating=Number(document.getElementById("rating").value);
+if(!name||!Number.isFinite(rating)||rating<0||rating>99){alert("Enter a player name and rating from 0 to 99.");return}
+db.push({id:Date.now(),name,team:document.getElementById("editTeam").value,era:document.getElementById("editEra").value,pos:document.getElementById("editPos").value,rating,year:Number(document.getElementById("year").value)||""});
+localStorage.setItem("nflRatings",JSON.stringify(db));
+document.getElementById("name").value="";
+document.getElementById("rating").value="";
+document.getElementById("year").value="";
+render();
+}
+function editPlayer(id){
+const p=db.find(x=>x.id===id);if(!p)return;
+const r=prompt("Enter new rating for "+p.name,p.rating);
+if(r===null)return;
+const n=Number(r);if(!Number.isFinite(n)||n<0||n>99){alert("Use a rating from 0 to 99.");return}
+p.rating=n;localStorage.setItem("nflRatings",JSON.stringify(db));render();
+}
+function exportData(){
+const a=document.createElement("a");
+a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:"application/json"}));
+a.download="nfl-ratings-backup.json";a.click();
+}
+["team","era","pos","search"].forEach(id=>document.getElementById(id).addEventListener("input",render));
+render();
+</script>
+</body>
+</html>
 
